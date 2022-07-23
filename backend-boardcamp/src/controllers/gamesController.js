@@ -25,23 +25,34 @@ export async function getGames(req, res) {
 
 export async function insertGame(req, res) {
   const newGame = req.body;
-  const allGames = await connection.query("SELECT * FROM games");
+  const { rows: allGames } = await connection.query("SELECT * FROM games");
   const gameSchema = joi.object({
     name: joi.string().required(),
-    image: joi.string().optional(),
+    image: joi.string(),
     stockTotal: joi.number().min(0).required(),
     categoryId: joi.number().min(0).required(),
     pricePerDay: joi.number().min(0).required(),
   });
+  console.log(newGame);
+  try {
+    const { error } = gameSchema.validate(newGame);
+    let nameAlreadyTaken = false;
+    allGames.map((game) => {
+      if( game.name === newGame.name) nameAlreadyTaken = true;
+    });
+    console.log(nameAlreadyTaken);
 
-  const { error } = gameSchema.validate(newGame);
-
-  const checkId = () => {
-    for (let i = 0; i < allGames.length; i++) {
-      // if( allGames[i].id ===  )
+    if (nameAlreadyTaken) return res.sendStatus(409);
+    else if (error) {
+      return res.sendStatus(400);
     }
-  };
-  if (error) {
-    return res.sendStatus(400);
+
+    await connection.query(
+      `INSERT INTO games (name,image,"stockTotal", "categoryId", "pricePerDay" ) VALUES ($1,$2,$3, $4, $5)`,
+      [newGame.name, newGame.image, newGame.stockTotal, newGame.categoryId, newGame.pricePerDay]
+    );
+    res.sendStatus(200);
+  } catch {
+    res.sendStatus(500);
   }
 }

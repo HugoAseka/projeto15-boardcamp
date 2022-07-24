@@ -27,13 +27,12 @@ export async function insertGame(req, res) {
   const newGame = req.body;
   const { rows: allGames } = await connection.query("SELECT * FROM games");
   const gameSchema = joi.object({
-    name: joi.string().required(),
+    name: joi.string().min(1).required(),
     image: joi.string(),
     stockTotal: joi.number().min(0).required(),
     categoryId: joi.number().min(0).required(),
     pricePerDay: joi.number().min(0).required(),
   });
-  console.log(newGame);
   try {
     const { error } = gameSchema.validate(newGame);
     let nameAlreadyTaken = false;

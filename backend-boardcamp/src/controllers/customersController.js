@@ -1,4 +1,5 @@
 import connection from "../dbStrategy/postgres.js";
+import joi from "joi";
 
 export async function getCustomers(req, res) {
   const { rows: customers } = await connection.query(`SELECT * FROM customers`);
@@ -25,4 +26,37 @@ export async function getCustomersById(req, res) {
   );
 
   res.send(customer);
+}
+
+export async function inserCustomers(req, res) {
+  const newCustomer = req.body;
+  const customerSchema = joi.object({
+    name: joi.string().min(1).required(),
+    phone: joi.string().min(10).max(11).required(),
+    cpf: joi.string().length(11).required(),
+    birthday: joi
+      .string()
+      .pattern(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/)
+      .required(),
+  });
+  try {
+
+  const { error } = customerSchema.validate(newCustomer);
+  const { rows: cpfTaken } = await connection.query(
+    `SELECT * FROM customers WHERE cpf = $1`,
+    [newCustomer.cpf]
+  );
+  console.log(cpfTaken);
+  if (error) {
+    return res.sendStatus(400);
+  } else if (cpfTaken.length !== 0) return res.sendStatus(409);
+
+  await connection.query(
+    `INSERT INTO customers (name,phone,cpf,birthday) VALUES ($1,$2,$3,$4)`,
+    [newCustomer.name, newCustomer.phone, newCustomer.cpf, newCustomer.birthday]
+  );
+  res.sendStatus(200);
+  }catch{
+    res.sendStatus(500);
+  }
 }

@@ -65,7 +65,7 @@ export async function insertCustomers(req, res) {
   }
 }
 
-export async function updateCostumer(req, res) {
+export async function updateCustomer(req, res) {
   const newCustomer = req.body;
   const { id } = req.params;
   const customerSchema = joi.object({

@@ -2,15 +2,15 @@ import {
   getCustomers,
   getCustomersById,
   insertCustomers,
-  updateCostumer,
+  updateCustomer,
 } from "../controllers/customersController.js";
 import { Router } from "express";
 
 const router = Router();
 
-router.get("/costumers", getCustomers);
+router.get("/customers", getCustomers);
 router.get("/customers/:id", getCustomersById);
 router.post("/customers", insertCustomers);
-router.put("/customers/:id", updateCostumer);
+router.put("/customers/:id", updateCustomer);
 
 export default router;

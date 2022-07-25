@@ -15,7 +15,7 @@ export async function getRentals(req, res) {
       customer: customers[index],
     };
   });
-  console.log(rentals[0].gameId == gameId);
+
   if (customerId && gameId) {
     const result = finalArr.filter(
       (rental) => rental.customerId == customerId && rental.gameId == gameId
@@ -39,7 +39,7 @@ export async function insertRental(req, res) {
     `SELECT * FROM games WHERE id = $1`,
     [newRental.gameId]
   );
-  console.log(gameObj);
+
   const { rows: existingCustomer } = await connection.query(
     `SELECT * FROM customers WHERE id = $1`,
     [newRental.customerId]
@@ -82,4 +82,51 @@ export async function insertRental(req, res) {
   } catch {
     res.sendStatus(500);
   }
+}
+
+export async function returnRental(req, res) {
+  const { id: rentalId } = req.params;
+  const today = dayjs();
+  let returnFee = 0;
+
+  const { rows: aux } = await connection.query(
+    `SELECT * FROM rentals WHERE id = $1`,
+    [rentalId]
+  );
+  const rental = aux[0];
+
+  if (rental.length === 0) {
+    return res.sendStatus(404);
+  } else if (rental.returnDate != null) {
+    return res.sendStatus(400);
+  }
+
+  try {
+    const delayedDays = today.diff(rental.rentDate, "day");
+
+    const delayFee = delayedDays * rental.originalPrice;
+
+    await connection.query(
+      `UPDATE rentals SET "returnDate"=$1, "delayFee"=$2 WHERE id=$3`,
+      [today.format("YYYY/MM/DD"), delayFee, rentalId]
+    );
+
+    res.sendStatus(200);
+  } catch {
+    res.sendStatus(500);
+  }
+}
+
+export async function deleteRental(req, res) {
+  const { id } = req.params;
+  const { rows: rental } = await connection.query(
+    `SELECT * FROM rentals WHERE id=$1 `,
+    [id]
+  );
+  console.log(rental)
+  if(rental.length === 0 ) return res.sendStatus(404)
+    else if(rental[0].returnDate != null) return res.sendStatus(400)
+
+  await connection.query(` DELETE FROM rentals WHERE id=$1`,[id]);
+  res.sendStatus(200);      
 }

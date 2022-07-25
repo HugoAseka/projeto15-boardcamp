@@ -63,20 +63,20 @@ export async function insertRental(req, res) {
     }
     const pricePerDay = gameObj[0].pricePerDay;
     const originalPrice = pricePerDay * newRental.daysRented;
-    // await connection.query(
-    //   `
-    // INSERT INTO rentals ("customerId","gameId","rentDate","daysRented","returnDate","originalPrice","delayFee")
-    // VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-    //   [
-    //     newRental.customerId,
-    //     newRental.gameId,
-    //     rentDate,
-    //     newRental.daysRented,
-    //     null,
-    //     originalPrice,
-    //     null,
-    //   ]
-    // );
+    await connection.query(
+      `
+    INSERT INTO rentals ("customerId","gameId","rentDate","daysRented","returnDate","originalPrice","delayFee")
+    VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [
+        newRental.customerId,
+        newRental.gameId,
+        rentDate,
+        newRental.daysRented,
+        null,
+        originalPrice,
+        null,
+      ]
+    );
 
     res.sendStatus(200);
   } catch {
